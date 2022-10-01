@@ -35,7 +35,6 @@ class Oauth:
     def get_user_json(access_token):
         url = f"{Oauth.discord_api_url}/users/@me"
         headers = {"Authorization": f"Bearer {access_token}"}
- 
-        user_object = requests.get(url = url, headers = headers).json()
-        return user_object
+
+        return requests.get(url = url, headers = headers).json()
 

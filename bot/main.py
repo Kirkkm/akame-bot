@@ -26,7 +26,7 @@ async def on_ready():
     database = Database(bot)
 
     for extension in initial_extensions:
-        print('Loaded Extension: {}'.format(extension))
+        print(f'Loaded Extension: {extension}')
         bot.load_extension(extension)
 
 if __name__ == "__main__":

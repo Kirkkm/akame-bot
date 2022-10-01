@@ -120,21 +120,21 @@ class Music(commands.Cog):
         !queue [page]"""
         if not self.queue:
             return
-        
-        string = '```Playing Right Now: {}\n\n'.format(self.fetch.parse_name(self.queue[0]))
+
+        string = f'```Playing Right Now: {self.fetch.parse_name(self.queue[0])}\n\n'
         start_in = 1 + 15*(page-1)
         go_to = 16 + 15*(page-1)
         if page > ceil(len(self.queue)/15):
-            await ctx.send("Not too many songs in the queue! Wait! You can add more, and then you can acess page {}".format(page))
+            await ctx.send(
+                f"Not too many songs in the queue! Wait! You can add more, and then you can acess page {page}"
+            )
+
         else:
             while start_in < go_to and start_in < len(self.queue):
-                if start_in < 10:
-                    number = str(start_in)+ ' '
-                else:
-                    number = start_in
-                string += '{} ->\t{} \n'.format(number, self.fetch.parse_name(self.queue[start_in]))
+                number = f'{str(start_in)} ' if start_in < 10 else start_in
+                string += f'{number} ->\t{self.fetch.parse_name(self.queue[start_in])} \n'
                 start_in += 1
-            string += '\nPage {}\{}```'.format(page, (ceil(len(self.queue)/15)))
+            string += f'\nPage {page}\{ceil(len(self.queue) / 15)}```'
             await ctx.send(string)
 
 
@@ -146,10 +146,10 @@ class Music(commands.Cog):
         self.loop = not self.loop
         if self.loop:
             embedVar = discord.Embed(title="Loop", description="Queue loop enabled", color=0x0099ff)
-            await ctx.send(embed=embedVar)
         else:
             embedVar = discord.Embed(title="Loop", description="Queue loop disabled", color=0x0099ff)
-            await ctx.send(embed=embedVar)
+
+        await ctx.send(embed=embedVar)
 
 
     @commands.command(pass_context=True, aliases=['clean','cleanq'])
@@ -166,55 +166,39 @@ class Music(commands.Cog):
     async def play(self, ctx, *args):
         """Plays from a url or a search query (almost anything youtube_dl supports)"""
 
-        content = ""
-        for i in args:
-            content += i + " "
-        content = content.split()
-
-        if content:
+        content = "".join(f"{i} " for i in args)
+        if content := content.split():
             pseudo_url = content[0]
 
             # Radio
             if validators.url(pseudo_url) and ("youtube" in pseudo_url) and ("radio" in pseudo_url):
                 embedVar = discord.Embed(title="Error", description="Can't play youtube Radio playlist!", color=0xff0000)
-                await ctx.send(embed=embedVar)
-
-            # Playlist
             elif validators.url(pseudo_url) and ("youtube" in pseudo_url) and ("list" in pseudo_url):
                 self.queue = self.fetch.parse_playlist(pseudo_url)
-                
-                embedVar = discord.Embed(title="Added Playlist", description="Added a new playlist!", color=0x0099ff)
-                await ctx.send(embed=embedVar)
 
-            # Youtube Video
+                embedVar = discord.Embed(title="Added Playlist", description="Added a new playlist!", color=0x0099ff)
             elif validators.url(pseudo_url) and ("youtube" in pseudo_url) and ("watch" in pseudo_url):
                 self.queue += [content[0],]
 
                 embedVar = discord.Embed(title="Added Song", description="Added the song!", color=0x0099ff)
-                await ctx.send(embed=embedVar)
-            
-            # Spotify Song
             elif validators.url(pseudo_url) and ("spotify" in pseudo_url) and ("track" in pseudo_url):
                 embedVar = discord.Embed(title="Error", description="Spotify songs not implemented", color=0xff0000)
-                await ctx.send(embed=embedVar)
-
-            # Spotify Playlist
             elif validators.url(pseudo_url) and ("spotify" in pseudo_url) and ("playlist" in pseudo_url):
                 embedVar = discord.Embed(title="Error", description="Spotify playlist not implemented", color=0xff0000)
-                await ctx.send(embed=embedVar)
-
-            # Random URL
             elif validators.url(pseudo_url):
                 embedVar = discord.Embed(title="Error", description="This is not a valid music video", color=0xff0000)
-                await ctx.send(embed=embedVar)
-
-            # Query Search
             else:
                 video = ytdl.extract_info(f"ytsearch:{content}", download=False)['entries'][0]
                 self.queue.append(video['webpage_url'])
 
-                embedVar = discord.Embed(title="Added Song", description="Added the song **{}**!".format(video['title']), color=0x0099ff)
-                await ctx.send(embed=embedVar)
+                embedVar = discord.Embed(
+                    title="Added Song",
+                    description=f"Added the song **{video['title']}**!",
+                    color=0x0099FF,
+                )
+
+
+            await ctx.send(embed=embedVar)
 
     @commands.command()
     async def volume(self, ctx, volume: int):
@@ -224,7 +208,7 @@ class Music(commands.Cog):
             return await ctx.send("Not connected to a voice channel.")
 
         ctx.voice_client.source.volume = volume / 100
-        await ctx.send("Changed volume to {}%".format(volume))
+        await ctx.send(f"Changed volume to {volume}%")
 
     @commands.command()
     async def stop(self, ctx):
@@ -248,13 +232,13 @@ class Music(commands.Cog):
 
             def release(error):
                 if error:
-                    print('Player error: %s' % error) 
-                
+                    print(f'Player error: {error}') 
+
                 lock.release()
 
             self.player = await YTDLSource.from_url(self.queue[0], loop=self.bot.loop, stream=True)
             ctx.voice_client.play(self.player, after=lambda error: release(error))
-            
+
             embedVar = discord.Embed(title="Start Playing", description='Now playing: {}'.format(self.player.title), color=0x0099ff)
             await ctx.send(embed=embedVar)
 
@@ -264,7 +248,7 @@ class Music(commands.Cog):
                 self.queue.append(last_played)
             else:
                 del self.queue[0]
-            
+
 
         lock.release()
         self.playing = 0   
