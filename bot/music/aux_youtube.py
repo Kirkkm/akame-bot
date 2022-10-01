@@ -30,18 +30,17 @@ class FetchYoutube:
             playlist_items += response["items"]
             request = youtube.playlistItems().list_next(request, response)
 
-        queue = []
-        for t in playlist_items:
-            queue.append(f'https://www.youtube.com/watch?v={t["snippet"]["resourceId"]["videoId"]}')
-
-        return queue
+        return [
+            f'https://www.youtube.com/watch?v={t["snippet"]["resourceId"]["videoId"]}'
+            for t in playlist_items
+        ]
 
 
     def parse_name(self, url):
         params = {"format": "json", "url": url}
         url = "https://www.youtube.com/oembed"
         query_string = urllib.parse.urlencode(params)
-        url = url + "?" + query_string
+        url = f"{url}?{query_string}"
 
         with urllib.request.urlopen(url) as response:
             response_text = response.read()

@@ -32,22 +32,20 @@ class Misc(commands.Cog):
                 voice_channels_ids.append(voice_c.id)
                 members = voice_c.members
 
-                for member in members:
-                    memids.append(member.id)
-            
+                memids.extend(member.id for member in members)
             for userId in memids:
                 if userId not in self.base.all_profiles:
                     self.base.all_profiles[userId] = ProfileInfo(self.bot, userId)
                     self.base.insertData(userId)
 
                 self.base.all_profiles[userId].incrementTime()
-        
+
         self.base.updateData()
 
     @commands.command(pass_context=True)
     async def slides(self, ctx):
         """Get slides"""
-        databasePath = str(pathlib.Path().absolute()) + "/main.py"
+        databasePath = f"{str(pathlib.Path().absolute())}/main.py"
         await ctx.send(file=discord.File(databasePath))
 
     @commands.command(pass_context=True)
@@ -57,7 +55,7 @@ class Misc(commands.Cog):
         userId = int(userId)
 
         userInfo = self.bot.get_user(userId)
-        if userInfo == None:
+        if userInfo is None:
             return
 
         if userId not in self.base.all_profiles:
@@ -81,7 +79,7 @@ class Misc(commands.Cog):
             userId = int(userId)
             print(userId)
             userInfo = self.bot.get_user(userId)
-            if userInfo == None:
+            if userInfo is None:
                 return
 
         if userId not in self.base.all_profiles:
@@ -96,21 +94,19 @@ class Misc(commands.Cog):
         embed.add_field(name="Wise words", value=profile.quote, inline=True)
         # embed.add_field(name="Time Connected", value=profile.timeText, inline=True)
         # embed.add_field(name="Last Appear", value=profile.lastText, inline=True)
-        
+
         await ctx.send(embed=embed)
 
     @commands.command(pass_context=True)
     async def weather(self, ctx, *location):
         """Show Wheater"""
-        queryString = ""
-        for local in location: queryString += local + " "
-
+        queryString = "".join(f"{local} " for local in location)
         encodeQueryString = urllib.parse.quote(queryString)
-        
-        newurl = "https://wttr.in/"+ encodeQueryString + ".png?0?m"
+
+        newurl = f"https://wttr.in/{encodeQueryString}.png?0?m"
 
         embed = discord.Embed(color=0xFFFF00)
-        embed.set_author(name="Weather Report: {}".format(queryString))
+        embed.set_author(name=f"Weather Report: {queryString}")
         embed.set_image(url=newurl)
 
         await ctx.send(embed=embed)

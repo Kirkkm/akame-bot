@@ -22,11 +22,9 @@ class ProfileInfo():
         minutes_left = self.time
 
         days = minutes_left // 1440
-        minutes_left = minutes_left - days*1440
+        minutes_left -= days*1440
 
-        hours = minutes_left // 60
-        minutes = minutes_left % 60
-        
+        hours, minutes = divmod(minutes_left, 60)
         hours_str = str(hours)
         minutes_str = str(minutes)
 
@@ -35,7 +33,7 @@ class ProfileInfo():
         if minutes < 10:
             minutes_str.zfill(1)
 
-        self.timeText = "{} days, {} hours, {} minutes".format(days, hours_str, minutes_str)
+        self.timeText = f"{days} days, {hours_str} hours, {minutes_str} minutes"
 
         now = datetime.datetime.now()
-        self.lastText = "{}/{}/{} {}:{}".format(now.year, now.month, now.day, now.hour, now.minute)
+        self.lastText = f"{now.year}/{now.month}/{now.day} {now.hour}:{now.minute}"
